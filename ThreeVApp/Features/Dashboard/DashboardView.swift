@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct DashboardView: View {
     @EnvironmentObject private var store: Store
@@ -67,14 +68,20 @@ struct DashboardView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [Theme.accent, Color(hex: 0x7A0C0C)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .fill(LinearGradient(colors: [store.menuAccent, Color(hex: 0x7A0C0C)], startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 46, height: 46)
                 Text(store.user?.initials ?? "?")
                     .font(.system(size: 19, weight: .bold))
                     .foregroundColor(.white)
             }
+            .overlay {
+                if let data = store.profileImageData, let image = UIImage(data: data) {
+                    Image(uiImage: image).resizable().scaledToFill()
+                }
+            }
+            .clipShape(Circle())
             VStack(alignment: .leading, spacing: 3) {
-                Text("Olá, \(store.user?.username ?? "")")
+                Text("Olá, \(store.effectiveDisplayName)")
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(Theme.text)
                 Text("\(store.roleLabel) · plano \(store.planLabel)")

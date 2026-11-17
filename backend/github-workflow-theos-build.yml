@@ -71,10 +71,20 @@ jobs:
           THEOS: /opt/theos
         working-directory: project
         run: |
-          # Se o Makefile estiver um nível abaixo (zip com pasta interna), entra nela.
+          # Se o ZIP tiver uma pasta interna, entra na pasta que contém o Makefile.
           if [ ! -f Makefile ]; then
-            cd "$(find . -maxdepth 2 -name Makefile -exec dirname {} \; | head -n1)"
+            make_dir="$(find . -maxdepth 3 -name Makefile -exec dirname {} \; | head -n1)"
+            test -n "$make_dir" || { echo "ERRO: nenhum Makefile foi encontrado no projeto."; exit 20; }
+            cd "$make_dir"
           fi
+          echo "Projeto Theos: $PWD"
+          test -f Makefile || { echo "ERRO: Makefile inválido."; exit 21; }
+          if [ -d ZOLMEA_SDK ]; then
+            echo "SDK ZOLMEA encontrado e será compilado junto."
+          else
+            echo "AVISO: SDK ZOLMEA não encontrado; o upload deve passar pelo construtor da API antes da compilação."
+          fi
+          make clean || true
           make clean package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless 2>&1 | tee /tmp/build.log
           mkdir -p /tmp/artifacts
           find . -name "*.deb" -exec cp {} /tmp/artifacts/ \;

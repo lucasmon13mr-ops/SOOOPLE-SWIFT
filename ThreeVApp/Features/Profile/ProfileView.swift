@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 
 struct ProfileView: View {
     @EnvironmentObject private var store: Store
@@ -10,6 +12,10 @@ struct ProfileView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var infoMessage: String?
+    @State private var profileName = ""
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var selectedImageData: Data?
+    @State private var selectedAccentHex: UInt32 = 0xFF3B3B
 
     @State private var twoFactorEnabled = false
     @State private var twoFactorMethod = "email"
@@ -44,7 +50,23 @@ struct ProfileView: View {
         .screenBackground()
         .navigationTitle("Perfil")
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadTwoFactor() }
+        .task {
+            profileName = store.displayName
+            selectedImageData = store.profileImageData
+            selectedAccentHex = store.menuAccentHex
+            await loadTwoFactor()
+        }
+        .onChange(of: selectedPhoto) { _, item in
+            guard let item else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self) {
+                    await MainActor.run {
+                        selectedImageData = data
+                        saveCustomization()
+                    }
+                }
+            }
+        }
     }
 
     private var accountCard: some View {
@@ -55,6 +77,36 @@ struct ProfileView: View {
             InfoRow(label: "Plano", value: store.planLabel)
             InfoRow(label: "Limite de pacotes", value: limitText(store.user?.maxPackages))
             InfoRow(label: "Limite de chaves", value: limitText(store.user?.maxKeys))
+            Divider().background(Theme.border)
+            SectionTitle(text: "Personalização")
+            HStack(spacing: 12) {
+                profileAvatar
+                VStack(alignment: .leading, spacing: 8) {
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        Label("Trocar foto", systemImage: "photo")
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    Button("Remover foto") {
+                        selectedImageData = nil
+                        saveCustomization()
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Theme.muted)
+                }
+            }
+            LabeledField(label: "Nome exibido", placeholder: store.user?.username ?? "Seu nome", text: $profileName)
+            Text("Cor do menu")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Theme.text2)
+            HStack(spacing: 12) {
+                ForEach([0xFF3B3B, 0x2D8CFF, 0xA855F7, 0x10B981, 0xF59E0B], id: \.self) { hex in
+                    Circle().fill(Color(hex: UInt32(hex))).frame(width: 30, height: 30)
+                        .overlay(Circle().stroke(.white, lineWidth: selectedAccentHex == UInt32(hex) ? 3 : 0))
+                        .onTapGesture { selectedAccentHex = UInt32(hex); saveCustomization() }
+                }
+            }
+            Button("Salvar personalização") { saveCustomization() }
+                .buttonStyle(PrimaryButtonStyle(color: Color(hex: selectedAccentHex)))
         }
         .cardStyle()
     }
@@ -183,6 +235,26 @@ struct ProfileView: View {
             }
         }
         .cardStyle()
+    }
+
+    private var profileAvatar: some View {
+        Group {
+            if let data = selectedImageData, let image = UIImage(data: data) {
+                Image(uiImage: image).resizable().scaledToFill()
+            } else {
+                Text(store.user?.initials ?? "?")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+            }
+        }
+        .frame(width: 64, height: 64)
+        .background(Circle().fill(store.menuAccent))
+        .clipShape(Circle())
+    }
+
+    private func saveCustomization() {
+        store.saveProfilePreferences(displayName: profileName, accentHex: selectedAccentHex, imageData: selectedImageData)
+        infoMessage = "Personalização salva neste aparelho."
     }
 
     private func limitText(_ value: Int?) -> String {

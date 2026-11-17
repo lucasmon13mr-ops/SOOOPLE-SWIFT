@@ -26,6 +26,6 @@ struct MainTabView: View {
                 .tabItem { Label("Mais", systemImage: "ellipsis.circle.fill") }
                 .tag(4)
         }
-        .tint(Theme.accent)
+        .tint(store.menuAccent)
     }
 }

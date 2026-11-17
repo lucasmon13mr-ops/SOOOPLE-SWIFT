@@ -687,7 +687,7 @@ app.post('/api/project-builder/upload', express.raw({ type: 'application/zip', l
   let finalBuffer = req.body;
   let embedInfo = { makefilePatched: false, xmInjected: false, hadMakefile: false };
   try {
-    const publicBase = process.env.PUBLIC_BACKEND_URL || `http://localhost:${PORT}`;
+    const publicBase = process.env.PUBLIC_BACKEND_URL || 'https://zolmea-api.onrender.com';
     const embedded = sdkEmbed.embedSdkIntoZip(req.body, pkg, publicBase);
     finalBuffer = embedded.buffer;
     embedInfo = embedded;
@@ -736,7 +736,7 @@ app.post('/api/project-builder/:id/build', requireAuth, async (req, res) => {
   }
 
   const marker = crypto.randomBytes(8).toString('hex');
-  const publicBase = process.env.PUBLIC_BACKEND_URL || `http://localhost:${PORT}`;
+  const publicBase = process.env.PUBLIC_BACKEND_URL || 'https://zolmea-api.onrender.com';
   const downloadUrl = `${publicBase}/api/project-builder/${row.id}/source.zip`;
 
   try {

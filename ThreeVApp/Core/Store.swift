@@ -8,6 +8,9 @@ final class Store: ObservableObject {
     @Published var isBootstrapping = true
     @Published var serverURL: String = AppConfig.baseURL
     @Published var notice: String?
+    @Published var displayName: String = UserDefaults.standard.string(forKey: "threev.displayName") ?? ""
+    @Published var menuAccentHex: UInt32 = UInt32(UserDefaults.standard.integer(forKey: "threev.menuAccentHex")) == 0 ? 0xFF3B3B : UInt32(UserDefaults.standard.integer(forKey: "threev.menuAccentHex"))
+    @Published var profileImageData: Data? = UserDefaults.standard.data(forKey: "threev.profileImageData")
 
     private var sessionObserver: NSObjectProtocol?
 
@@ -121,6 +124,22 @@ final class Store: ObservableObject {
         let normalized = AppConfig.normalize(url)
         AppConfig.baseURL = normalized
         serverURL = AppConfig.baseURL
+    }
+
+    var effectiveDisplayName: String {
+        displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (user?.username ?? "Usuário") : displayName
+    }
+
+    var menuAccent: Color { Color(hex: menuAccentHex) }
+
+    func saveProfilePreferences(displayName: String, accentHex: UInt32, imageData: Data?) {
+        self.displayName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.menuAccentHex = accentHex
+        self.profileImageData = imageData
+        UserDefaults.standard.set(self.displayName, forKey: "threev.displayName")
+        UserDefaults.standard.set(Int(accentHex), forKey: "threev.menuAccentHex")
+        if let imageData { UserDefaults.standard.set(imageData, forKey: "threev.profileImageData") }
+        else { UserDefaults.standard.removeObject(forKey: "threev.profileImageData") }
     }
 
     func handleSessionExpired() {
