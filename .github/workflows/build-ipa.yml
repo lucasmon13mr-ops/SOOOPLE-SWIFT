@@ -125,16 +125,6 @@ jobs:
           zip -qry ThreeV-signed.ipa Payload
           ls -lh ThreeV-signed.ipa
 
-      - name: Publicar artefatos
-        uses: actions/upload-artifact@v4
-        with:
-          name: ThreeV-IPA
-          path: |
-            ThreeV-*.ipa
-            ThreeV-*.sha256
-          if-no-files-found: error
-          retention-days: 30
-
       - name: Publicar IPA direto em uma Release
         if: ${{ github.event_name != 'pull_request' }}
         env:
