@@ -10,6 +10,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -131,3 +134,20 @@ jobs:
             ThreeV-*.sha256
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publicar IPA direto em uma Release
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="ipa-build-${GITHUB_RUN_NUMBER}"
+          FILES=(ThreeV-unsigned.ipa ThreeV-unsigned.ipa.sha256)
+          if [ -f ThreeV-signed.ipa ]; then
+            FILES+=(ThreeV-signed.ipa)
+          fi
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "3V API IPA build #${GITHUB_RUN_NUMBER}" \
+            --notes "IPA gerado automaticamente. O arquivo unsigned precisa ser assinado com AltStore, SideStore, Sideloadly, ESign ou Scarlet antes da instalação." \
+            "${FILES[@]}"
