@@ -31,6 +31,8 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Permite conectar ao seu backend ZOLMEA API rodando na sua rede local.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Permite escolher uma foto para o perfil do aplicativo.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

@@ -11,7 +11,11 @@ enum AppConfig {
     static var baseURL: String {
         get {
             let stored = UserDefaults.standard.string(forKey: baseURLKey)
-            return normalize(stored ?? defaultBaseURL)
+            let value = normalize(stored ?? defaultBaseURL)
+            if value.isEmpty || value.contains("exemplo.com") || value.contains("api.zolmeaapi.shop") {
+                return defaultBaseURL
+            }
+            return value
         }
         set {
             UserDefaults.standard.set(normalize(newValue), forKey: baseURLKey)

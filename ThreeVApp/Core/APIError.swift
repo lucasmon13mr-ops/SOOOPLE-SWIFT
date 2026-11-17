@@ -56,6 +56,7 @@ enum APIError: LocalizedError {
         case "missing_package_or_bundle_id": return "Escolha um pacote e informe o Bundle ID."
         case "invalid_bundle_id": return "Bundle ID inválido. Exemplo: com.empresa.app"
         case "invalid_zip_file", "empty_zip": return "O arquivo enviado não é um ZIP válido."
+        case "upload_missing_id": return "O servidor recebeu o projeto, mas não retornou o identificador da compilação."
         case "trigger_failed": return "Não foi possível iniciar a compilação no GitHub Actions."
         case "user_not_found": return "Usuário não encontrado."
         case "phone_verification_not_configured": return "Verificação por SMS não está configurada no backend."

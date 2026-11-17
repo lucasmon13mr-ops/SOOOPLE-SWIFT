@@ -67,6 +67,11 @@ final class APIClient {
         return data
     }
 
+    func postUploadZip<T: Decodable>(_ path: String, zip: Data, headers: [String: String], as type: T.Type = T.self) async throws -> T {
+        let data = try await uploadZip(path, zip: zip, headers: headers)
+        return try decode(data, as: type)
+    }
+
     /// Baixa um arquivo autenticado (artefatos do construtor, SDK em ZIP) para
     /// a pasta Documentos/Downloads do app.
     func download(_ path: String, query: [URLQueryItem] = [], filename: String) async throws -> URL {

@@ -135,6 +135,16 @@ struct LoginView: View {
             Text("Use a URL pública do backend (Railway, Render, VPS…). Sem barra no final.")
                 .font(.system(size: 11))
                 .foregroundColor(Theme.muted)
+            Text("API oficial: \(AppConfig.defaultBaseURL)")
+                .font(.system(size: 10, design: .monospaced))
+                .foregroundColor(Theme.success)
+                .textSelection(.enabled)
+            Button("Restaurar API oficial") {
+                serverField = AppConfig.defaultBaseURL
+                store.saveServer(AppConfig.defaultBaseURL)
+            }
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(Theme.text2)
             Button("Salvar servidor") {
                 store.saveServer(serverField)
                 withAnimation { showServerSettings = false }

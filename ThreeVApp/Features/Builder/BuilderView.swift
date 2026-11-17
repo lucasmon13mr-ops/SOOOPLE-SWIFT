@@ -74,7 +74,7 @@ struct BuilderView: View {
                 Text("Compilador não configurado")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(Theme.text)
-                Text("Preencha GITHUB_TOKEN e GITHUB_REPO no .env do backend para habilitar a compilação real.")
+                Text("O backend ainda não está conectado ao GitHub Actions. Confira GITHUB_TOKEN e GITHUB_REPO no Render.")
                     .font(.system(size: 11))
                     .foregroundColor(Theme.muted)
             }
@@ -277,7 +277,7 @@ struct UploadProjectView: View {
                     } label: {
                         HStack {
                             Image(systemName: "doc.zipper")
-                            Text(zipName.isEmpty ? "Selecionar ZIP do projeto" : zipName)
+                            Text(zipName.isEmpty ? "Selecionar ZIP/source do projeto" : zipName)
                                 .lineLimit(1)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -368,7 +368,9 @@ struct UploadProjectView: View {
                     "X-Project-Name": projectName.isEmpty ? url.deletingPathExtension().lastPathComponent : projectName,
                     "X-Original-Filename": url.lastPathComponent
                 ]
-                _ = try await APIClient.shared.uploadZip("/api/project-builder/upload", zip: data, headers: headers)
+                let uploaded: ProjectUploadResponse = try await APIClient.shared.postUploadZip("/api/project-builder/upload", zip: data, headers: headers)
+                guard let buildId = uploaded.id else { throw APIError.http(status: 500, code: "upload_missing_id", message: "O servidor não retornou o ID do projeto enviado.") }
+                _ = try await APIClient.shared.postOK("/api/project-builder/\(buildId)/build")
                 onUploaded()
                 dismiss()
             } catch let error {
@@ -377,4 +379,10 @@ struct UploadProjectView: View {
             isLoading = false
         }
     }
+}
+
+private struct ProjectUploadResponse: Decodable {
+    let ok: Bool?
+    let id: Int?
+    let message: String?
 }
