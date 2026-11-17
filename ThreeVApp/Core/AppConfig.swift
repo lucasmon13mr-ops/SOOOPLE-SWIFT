@@ -3,8 +3,8 @@ import Foundation
 /// Configuração global do app. O endereço do backend é definido pelo usuário na
 /// tela de login (ou em Mais → Servidor) e fica salvo no aparelho.
 enum AppConfig {
-    /// Endereço padrão. Troque aqui pelo seu backend público, ou configure no app.
-    static let defaultBaseURL = "https://SEU-BACKEND-AQUI.exemplo.com"
+    /// Backend público gratuito configurado no Render.
+    static let defaultBaseURL = "https://zolmea-api.onrender.com"
 
     private static let baseURLKey = "threev.baseURL"
 
