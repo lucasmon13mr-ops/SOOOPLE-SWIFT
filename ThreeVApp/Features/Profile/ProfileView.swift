@@ -56,7 +56,7 @@ struct ProfileView: View {
             selectedAccentHex = store.menuAccentHex
             await loadTwoFactor()
         }
-        .onChange(of: selectedPhoto) { _, item in
+        .onChange(of: selectedPhoto) { item in
             guard let item else { return }
             Task {
                 if let data = try? await item.loadTransferable(type: Data.self) {
