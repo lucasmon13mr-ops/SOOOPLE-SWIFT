@@ -1,0 +1,428 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZOLMEA API</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="screen-login" class="login-wrap hidden">
+  <div class="login-card">
+    <div class="login-emblem">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z"></path>
+        <path d="m9 12 2 2 4-4"></path>
+      </svg>
+    </div>
+    <div class="logo">ZOLMEA <span class="logo-accent">API</span></div>
+    <p class="login-sub">Plataforma de Proteção de Licenças e Dispositivos</p>
+
+    <div style="display:flex;align-items:center;gap:10px;margin:4px 0 16px;color:#8290a5;font-size:12px"><span style="height:1px;background:#293348;flex:1"></span>OU<span style="height:1px;background:#293348;flex:1"></span></div>
+    <div id="auth-mode-switch" style="display:flex;gap:8px;margin:0 0 16px"><button id="tab-login-btn" type="button" class="btn btn-primary" style="flex:1">Entrar</button><button id="tab-signup-btn" type="button" class="btn btn-ghost" style="flex:1">Criar Conta</button></div>
+    <div id="signup-panel" class="hidden" style="padding:4px 0 12px"><h3 style="margin:8px 0">Crie sua conta</h3><p class="hint">Crie uma conta padrão da API ZOLMEA. Contas de revendedor usam a Plataforma de Revendedores separada.</p><div class="field"><label>Nome de usuário</label><input id="signup-username" class="input" autocomplete="username" placeholder="seu_usuario" required=""></div><div class="field"><label>E-mail</label><input id="signup-email" class="input" type="email" autocomplete="email" placeholder="voce@exemplo.com" required=""></div><div class="field"><label>Senha</label><input id="signup-password" class="input" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" minlength="8" required=""></div><div class="field"><label>Confirmar senha</label><input id="signup-password2" class="input" type="password" autocomplete="new-password" placeholder="Repita sua senha" minlength="8" required=""></div><button id="btn-signup-request" type="button" class="btn btn-primary btn-block btn-lg">Criar Conta</button><div id="signup-otp-step" class="hidden" style="margin-top:14px"><label>Código de verificação</label><input id="signup-code" class="input" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos por e-mail"><button id="btn-signup-verify" type="button" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">Verificar e-mail e continuar</button></div><div id="signup-message" class="hint" style="margin-top:10px"></div></div>
+    <div id="phone-verify" class="hidden"><h3 style="margin:8px 0 8px">Verifique seu telefone</h3><p class="hint">Google verificado. Informe seu número de telefone para receber um código SMS.</p><form id="form-phone"><input id="in-phone" class="input" placeholder="+5511999999999" inputmode="tel" required=""><button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">Enviar código SMS</button></form><div id="otp-step" class="hidden" style="margin-top:14px"><input id="in-otp" class="input" placeholder="Código de 6 dígitos" inputmode="numeric" maxlength="6"><button id="btn-verify-otp" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">Verificar código</button></div><div id="phone-error" class="error"></div></div>
+        <div id="twofa-login-panel" class="hidden" style="padding:12px 0;text-align:center"><h3>Autenticação de dois fatores</h3><p id="twofa-login-method" class="hint">Insira o código de segurança enviado para sua conta.</p><input id="twofa-login-code" class="input" inputmode="numeric" maxlength="6" placeholder="Código de 6 dígitos"><button id="btn-twofa-login" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">Verificar código de segurança</button><div id="twofa-login-error" class="error"></div></div><form id="form-login">
+      <div class="field">
+        <label>Nome de usuário</label>
+        <input type="text" class="input" id="in-user" autocomplete="username" placeholder="admin" required="">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" class="input" id="in-pass" autocomplete="current-password" placeholder="••••••••" required="" minlength="8">
+      </div>
+      <div id="login-error" class="error"></div>
+      <button type="submit" id="btn-login-submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
+      <p style="text-align:center;margin:14px 0 0"><a href="#" id="forgot-password-link" style="color:#ff5c5c;font-size:13px">Esqueceu a senha?</a></p>
+    </form>
+    <div id="forgot-panel" class="hidden" style="padding:12px 0"><h3>Redefinir sua senha</h3><p class="hint">Informe o e-mail da sua conta e enviaremos um link seguro de redefinição.</p><input id="forgot-email" class="input" type="email" placeholder="voce@exemplo.com"><button id="btn-send-reset" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">Enviar link de redefinição</button><p><a href="#" id="back-to-login" class="hint">Voltar ao login</a></p><div id="forgot-message" class="hint"></div></div><div id="reset-panel" class="hidden" style="padding:12px 0"><h3>Escolha uma nova senha</h3><input id="reset-password" class="input" type="password" minlength="8" placeholder="Nova senha"><input id="reset-password2" class="input" type="password" minlength="8" placeholder="Confirmar senha" style="margin-top:10px"><button id="btn-reset-password" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">Atualizar senha</button><div id="reset-message" class="hint"></div></div>
+    <p class="hint">Todos os identificadores de dispositivo são armazenados apenas como hashes SHA-256. Os cookies de sessão são HTTP-only.</p>
+    <p style="margin:16px 0 0;text-align:center;font-size:12px;color:#8c98ab">Precisa de ajuda? <a href="https://t.me/zolmeaffxx" target="_blank" rel="noopener" style="color:#ff5c5c;text-decoration:none;font-weight:600">Fale com o suporte no Telegram</a></p>
+  </div>
+</div>
+
+<!-- ================= APLICATIVO PRINCIPAL ================= -->
+<div id="screen-main" class="app hidden">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z"></path>
+          <path d="m9 12 2 2 4-4"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">ZOLMEA <span style="color:var(--accent)">API</span></div>
+        <div class="brand-ver">Painel de Controle</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-tab="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect></svg>
+        Painel
+      </button>
+      <button class="nav-item" data-tab="packages">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.5 9.4-9-5.19"></path><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4Z"></path><polyline points="3.3 7 12 12 20.7 7"></polyline><line x1="12" x2="12" y1="22" y2="12"></line></svg>
+        Pacotes
+      </button>
+      <button class="nav-item" data-tab="sdk-files">
+        <span style="font-size:16px">⌘</span> Arquivos SDK
+      </button>
+      <button class="nav-item project-builder-nav" data-tab="project-builder">
+        <span style="font-size:16px">⚙</span> Construtor de Projetos
+      </button>
+      <button class="nav-item" data-tab="licenses">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"></path><rect x="3" y="3" width="18" height="18" rx="3"></rect></svg>
+        Licenças
+      </button>
+      <button class="nav-item" data-tab="devices">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" x2="12.01" y1="18" y2="18"></line></svg>
+        Dispositivos
+      </button>
+      <button class="nav-item" data-tab="checks">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        Verificar registro
+      </button>
+      <button class="nav-item" data-tab="bans">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"></line></svg>
+        Proibições de IP
+      </button>
+      <button class="nav-item" data-tab="audit">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" x2="8" y1="13" y2="13"></line><line x1="16" x2="8" y1="17" y2="17"></line></svg>
+        Registro de auditoria
+      </button>
+      <button class="nav-item owner-only" data-tab="users"><span style="font-size:16px">◎</span> Todos os Usuários</button>
+      <button class="nav-item" data-tab="resellers"><span style="font-size:16px">♢</span> Revendedores</button>
+      <button class="nav-item owner-only" data-tab="statistics"><span style="font-size:16px">▥</span> Estatísticas</button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-meta">
+          <div class="u" id="user-name">—</div>
+          <div class="r">Gerente</div>
+          <button id="btn-profile" class="account-link" type="button">Perfil</button>
+        </div>
+      </div>
+      <button id="btn-logout" class="btn btn-ghost btn-sm">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <div class="content">
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Abrir menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+      </button>
+      <div class="brand-mobile">
+        <div class="brand-mark" style="width:30px;height:30px;border-radius:8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6l-8-4Z"></path></svg>
+        </div>
+        <span class="brand-name" style="font-size:15px">ZOLMEA <span style="color:var(--accent)">API</span></span>
+      </div>
+    </header>
+
+    <main>
+      <section id="tab-users" class="panel hidden">
+        <div class="page-head"><div><div class="page-title">Todos os Usuários</div><div class="page-desc">Gerencie planos de usuários e limites de conta.</div></div><button id="btn-refresh-users" class="btn btn-ghost btn-sm">Atualizar</button></div>
+        <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr><th>Usuário</th><th>E-mail</th><th>Plano</th><th>Pacotes</th><th>Chaves</th><th>Ação</th></tr></thead><tbody id="tbl-users-body"></tbody></table></div></div>
+      </section>
+      <section id="tab-statistics" class="panel hidden">
+        <div class="page-head"><div><div class="page-title">Estatísticas</div><div class="page-desc">Visão geral da plataforma — somente para o proprietário.</div></div><button id="btn-refresh-owner-stats" class="btn btn-ghost btn-sm">Atualizar</button></div>
+        <div class="stat-grid" id="owner-stat-grid"></div>
+      </section>
+      <section id="tab-resellers" class="panel hidden">
+        <div class="page-head"><div><div class="page-title">Revendedores</div><div class="page-desc">Crie contas de revendedor controladas para pacotes e cotas de chaves selecionados.</div></div><div class="page-actions"><button id="btn-new-reseller" class="btn btn-primary">Criar revendedor</button><button id="btn-refresh-resellers" class="btn btn-ghost btn-sm">Atualizar</button></div></div>
+        <div id="reseller-notice" class="hint" style="margin:0 0 14px"></div>
+        <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr><th>Nome de usuário</th><th>Pacotes</th><th>Chaves usadas</th><th>Cota</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tbl-resellers-body"></tbody></table></div></div>
+      </section>
+      <!-- Painel -->
+      <section id="tab-dashboard" class="panel">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Painel</div>
+            <div class="page-desc">Visão geral em tempo real de pacotes, licenças e verificações.</div>
+          </div>
+          <div class="page-actions">
+            <button id="btn-refresh-stats" class="btn btn-ghost btn-sm" title="Atualizar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.36-6.36L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15.36 6.36L3 16"></path><path d="M3 21v-5h5"></path></svg>
+              Atualizar
+            </button>
+          </div>
+        </div>
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="card">
+          <div id="security-2fa-card" class="card" style="margin-bottom:18px;border:1px solid rgba(255,59,59,.28)"><h2>Autenticação de Dois Fatores</h2><p class="hint">Adicione uma etapa extra de segurança usando seu e-mail ou sua conta do Telegram vinculada.</p><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="twofa-method" class="input" style="max-width:180px"><option value="email">E-mail</option><option value="telegram">Telegram</option></select><button id="btn-2fa-enable" class="btn btn-primary">Ativar 2FA</button><button id="btn-2fa-disable" class="btn btn-ghost">Desativar</button></div><div id="twofa-setup-step" class="hidden" style="margin-top:12px"><input id="twofa-setup-code" class="input" maxlength="6" placeholder="Digite o código de segurança"><button id="btn-2fa-confirm" class="btn btn-primary" style="margin-top:8px">Confirmar e ativar</button></div><div id="twofa-status" class="hint" style="margin-top:10px"></div><pre id="twofa-recovery" class="codeblock hidden"></pre></div><div class="card" style="margin-bottom:18px;border:1px solid rgba(255,184,92,.28)"><h2>Controle de Bots do Telegram <span class="badge badge-yellow" style="margin-left:8px">Desativado</span></h2><p style="color:var(--text-2);font-size:13.5px;line-height:1.7">Vincule sua conta do Telegram para gerenciar a API ZOLMEA a partir do bot.</p><button id="btn-telegram-bot" class="btn btn-ghost" type="button" disabled="">Não disponível</button><span id="telegram-link-status" class="hint" style="margin-left:10px;color:#f4c37a">Recurso desativado</span></div>
+          <h2>Integração Rápida do SDK</h2>
+          <p style="color:var(--text-2);font-size:13.5px;line-height:1.7;margin-bottom:12px">
+            O endpoint de verificação <code>POST /api/sdk/verify</code> requer <code>token</code>,
+            <code>key</code>, <code>device_id</code> e uma
+            <code>signature = Assinatura v3 HMAC sobre a requisição canônica incluindo o Instance ID</code>.
+          </p>
+          <pre class="codeblock">POST /api/sdk/verify
+{
+  "token": "PACKAGE_TOKEN",
+  "key": "LICENSE_KEY",
+  "device_id": "ID da instância do Keychain",
+  "signature": "hmac_hex_of_(key + '|' + device_id)",
+  "device_name": "iPhone 15",
+  "hwid": "hash de identificação de hardware",
+  "os_info": "iOS 18",
+  "dylibs": 2
+}</pre>
+          <p class="hint">Opcional: envie <code>dylibs</code> (contagem de dylibs carregadas, igual à verificação do próprio SDK). Se o pacote tiver a opção <b>Desativar Injeção</b> e a contagem exceder o <b>Máximo de dylibs</b>, a verificação é rejeitada como <code>injection_detected</code>.</p>
+        </div>
+      </section>
+
+      <!-- Pacotes -->
+      <section id="tab-packages" class="panel hidden">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Pacotes</div>
+            <div class="page-desc">Gerencie pacotes de clientes, tokens e política de injeção.</div>
+          </div>
+          <div class="page-actions">
+            <button id="btn-new-package" class="btn btn-primary reseller-edit-only">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
+              Novo Pacote
+            </button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+            <input type="text" id="search-packages" placeholder="Pesquisar pacotes…">
+          </div>
+        </div>
+        <div class="table-wrap"><table class="tbl" id="tbl-packages">
+          <thead><tr>
+            <th data-sort="id">ID</th>
+            <th data-sort="name">Nome</th>
+            <th data-sort="token">Token</th>
+            <th data-sort="max_devices">Máx. dispositivos</th>
+            <th data-sort="allow_inject">Política de injeção</th>
+            <th data-sort="max_dylibs">Máx. dylibs</th>
+            <th data-sort="active">Status</th>
+            <th data-sort="created_at">Criado</th>
+            <th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+
+      <!-- Arquivos SDK -->
+      <section id="tab-sdk-files" class="panel hidden">
+        <div class="page-head"><div><div class="page-title">Arquivos SDK</div><div class="page-desc">Escolha seu pacote e gere um arquivo SDK privado automaticamente.</div></div><div class="page-actions"><select id="sdk-package-filter" class="input" style="min-width:220px"><option value="">Selecione um pacote</option></select><button id="btn-refresh-sdk-files" class="btn btn-ghost btn-sm">Atualizar</button></div></div>
+        <div class="card"><div id="sdk-files-body" class="sdk-files-grid"><p class="hint">Carregando arquivos SDK…</p></div></div>
+        <p class="hint" style="margin-top:12px">Mantenha os arquivos baixados privados. Nunca envie o arquivo de configuração gerado nem o compartilhe com outra conta.</p>
+      </section>
+
+      <!-- Construtor de Projetos -->
+      <section id="tab-project-builder" class="panel hidden">
+        <div class="page-head"><div><div class="page-title">Construtor de Projetos</div><div class="page-desc">Faça o upload de um arquivo ZIP do Theos, anexe o SDK do seu pacote e compile uma dylib ou um deb com segurança.</div></div><button id="btn-refresh-project-builds" class="btn btn-ghost btn-sm">Atualizar</button></div>
+        <div class="card" style="margin-bottom:18px;border:1px solid rgba(255,59,59,.28)">
+          <h2>Novo projeto Theos</h2>
+          <p class="hint">Entrada suportada: um arquivo ZIP contendo um Makefile em seu diretório raiz ou um diretório abaixo. O compilador adiciona o SDK do pacote selecionado em <code>ZOLMEA_SDK/</code>.</p>
+          <div id="project-builder-quota" class="hint" style="margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,59,59,.22);border-radius:10px">Verificando cota diária de compilação…</div>
+          <div id="project-builder-github-notice" class="hint hidden" style="margin:0 0 14px;padding:10px 12px;border:1px solid rgba(244,195,122,.35);border-radius:10px;color:#f4c37a"></div>
+          <div class="builder-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+            <div class="field"><label>Projeto ZIP</label><input id="project-zip" class="input" type="file" accept=".zip,application/zip"></div>
+            <div class="field"><label>Pacote</label><select id="project-package" class="input"><option value="">Selecione um pacote</option></select></div>
+            <div class="field"><label>ID do Pacote</label><input id="project-bundle-id" class="input" placeholder="org.ppsspp.ppsspp" autocomplete="off"></div>
+            <div class="field"><label>Nome do Projeto</label><input id="project-name" class="input" placeholder="ppsspp-tweak"></div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button id="btn-upload-project" class="btn btn-primary">Faça o upload e prepare</button><span id="project-builder-message" class="hint"></span></div>
+        </div>
+        <div class="card"><div class="table-wrap"><table class="tbl"><thead><tr><th>Projeto</th><th>Pacote</th><th>ID do Pacote</th><th>Status</th><th>Estágio</th><th>Artefatos</th><th>Ações</th></tr></thead><tbody id="project-builds-body"><tr><td colspan="7" class="hint">Nenhum projeto enviado ainda.</td></tr></tbody></table></div></div>
+      </section>
+
+      <!-- Licenças -->
+      <section id="tab-licenses" class="panel hidden">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Licenças</div>
+            <div class="page-desc">Criar, gerenciar e revogar chaves de licença.</div>
+          </div>
+          <div class="page-actions">
+            <button id="btn-create-keys" class="btn btn-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
+              Criar Chaves
+            </button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+            <input type="text" id="search-licenses" placeholder="Pesquisar por chave ou nota…">
+          </div>
+          <div class="filters">
+            <select id="filter-package"><option value="">Todos os pacotes</option></select>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="tbl" id="tbl-licenses">
+          <thead><tr>
+            <th data-sort="id">ID</th>
+            <th data-sort="package_name">Pacote</th>
+            <th data-sort="key">Chave</th>
+            <th data-sort="status">Status</th>
+            <th data-sort="device_count">Dispositivos</th>
+            
+            <th data-sort="expires_at">Expira</th>
+            
+            <th>Nota</th>
+            <th>Ações</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+
+      <!-- Dispositivos -->
+      <section id="tab-devices" class="panel hidden">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Dispositivos</div>
+            <div class="page-desc">Perfis de dispositivos vinculados a licenças — os identificadores são armazenados apenas como hashes.</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+            <input type="text" id="search-devices" placeholder="Pesquisar dispositivos…">
+          </div>
+          <div class="filters">
+            <select id="filter-device-license"><option value="">Todas as licenças</option></select>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="tbl" id="tbl-devices">
+          <thead><tr>
+            <th data-sort="id">ID</th>
+            <th data-sort="package_name">Pacote</th>
+            <th data-sort="license_key">Chave de licença</th>
+            <th data-sort="device_hash">Hash do dispositivo</th>
+            <th data-sort="name_hash">Hash do nome</th>
+            <th data-sort="hwid_hash">Hash do HWID</th>
+            <th data-sort="system_hash">Hash do sistema</th>
+            <th data-sort="os_info">SO</th>
+            <th data-sort="last_ip">Último IP</th>
+            <th data-sort="last_seen_at">Visto por último</th>
+            <th data-sort="check_count">Verificações</th>
+            <th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+
+      <!-- Verificar registro -->
+      <section id="tab-checks" class="panel hidden">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Verificar Registro</div>
+            <div class="page-desc">Resultados de verificação em tempo real do SDK.</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+            <input type="text" id="search-checks" placeholder="Pesquisar resultados ou detalhes…">
+          </div>
+          <div class="filters">
+            <select id="filter-check-license"><option value="">Todas as licenças</option></select>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="tbl" id="tbl-checks">
+          <thead><tr>
+            <th data-sort="id">ID</th>
+            <th data-sort="created_at">Hora</th>
+            <th data-sort="package_token">Token do pacote</th>
+            <th data-sort="device_hash">Hash do dispositivo</th>
+            <th data-sort="result">Resultado</th>
+            <th data-sort="detail">Detalhe</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+
+      <!-- Proibições de IP -->
+      <section id="tab-bans" class="panel hidden">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Proibições de IP</div>
+            <div class="page-desc">Bloqueie IPs de acessar os endpoints públicos do SDK.</div>
+          </div>
+          <div class="page-actions">
+            <button id="btn-new-ban" class="btn btn-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" x2="12" y1="5" y2="19"></line><line x1="5" x2="19" y1="12" y2="12"></line></svg>
+              Banir IP
+            </button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+            <input type="text" id="search-bans" placeholder="Pesquisar motivos…">
+          </div>
+        </div>
+        <div class="table-wrap"><table class="tbl" id="tbl-bans">
+          <thead><tr>
+            <th data-sort="id">ID</th>
+            <th data-sort="ip_hash">IP (hash)</th>
+            <th data-sort="reason">Motivo</th>
+            <th data-sort="expires_at">Expira</th>
+            <th data-sort="created_at">Criado</th>
+            <th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+
+      <!-- Auditoria -->
+      <section id="tab-audit" class="panel hidden">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Registro de Auditoria</div>
+            <div class="page-desc">Histórico de ações administrativas no servidor.</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+            <input type="text" id="search-audit" placeholder="Pesquisar ações…">
+          </div>
+        </div>
+        <div class="table-wrap"><table class="tbl" id="tbl-audit">
+          <thead><tr>
+            <th data-sort="created_at">Hora</th>
+            <th data-sort="actor">Autor</th>
+            <th data-sort="action">Ação</th>
+            <th data-sort="target">Alvo</th>
+            <th data-sort="detail">Detalhe</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay hidden">
+  <div class="modal" id="modal-box">
+    <div class="modal-head"><h3 id="modal-title"></h3><button id="modal-close" class="btn btn-ghost icon-only">×</button></div>
+    <div id="modal-body"></div>
+    <div id="modal-actions" class="modal-actions"></div>
+  </div>
+</div>
+
+<div id="toast-stack" class="toast-stack"></div>
+
+<script src="app.js"></script>
+
+
+</body></html>

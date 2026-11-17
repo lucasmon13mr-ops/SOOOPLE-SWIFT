@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ZOLMEA API — Login de Revendedor</title>
+  <link rel="stylesheet" href="reseller.css">
+</head>
+<body class="reseller-auth-page">
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div class="brand-mark large">M3</div>
+      <div class="eyebrow">ZOLMEA API · PORTAL DO REVENDEDOR</div>
+      <h1>Login de revendedor</h1>
+      <p class="muted">Este portal é reservado para contas de revendedor. Proprietários e usuários comuns devem usar o painel principal.</p>
+      <form id="reseller-login-form" class="stack">
+        <label>Nome de usuário ou e-mail<input id="username" class="input" autocomplete="username" required=""></label>
+        <label>Senha<input id="password" class="input" type="password" autocomplete="current-password" required=""></label>
+        <button class="btn primary" type="submit">Entrar no portal de revendedor</button>
+      </form>
+      <section id="twofa" class="stack hidden"><label>Código de segurança<input id="twofa-code" class="input" inputmode="numeric" maxlength="6" placeholder="000000"></label><button id="twofa-submit" class="btn primary" type="button">Verificar código de segurança</button></section>
+      <p id="message" class="message" role="alert"></p>
+      <a class="back-link" href="login.html">Voltar ao login principal</a>
+    </section>
+  </main>
+  <script src="reseller.js"></script>
+
+
+</body></html>

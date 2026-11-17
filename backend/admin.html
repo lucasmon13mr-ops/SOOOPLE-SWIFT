@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZOLMEA API — Administração</title>
+<link rel="stylesheet" href="/app.css">
+<style>
+  body{background:var(--bg-1,#0b1220);color:var(--text,#e7ecf5);font-family:system-ui,sans-serif;margin:0}
+  .admin-wrap{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+  .admin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .admin-head h1{font-size:22px;margin:0}
+  .admin-head a{color:#82aaff;text-decoration:none;font-size:13.5px}
+  .gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center;gap:14px}
+  .gate p{color:#9aa7bd;max-width:340px}
+</style>
+</head>
+<body>
+  <div id="gate" class="gate hidden">
+    <div style="font-size:38px">🔒</div>
+    <h2>Acesso restrito</h2>
+    <p>Esta área é exclusiva para a conta proprietária (owner) da API ZOLMEA. Faça login abaixo para continuar.</p>
+    <form id="admin-login-form" style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px">
+      <input id="admin-login-user" class="input" placeholder="Usuário" autocomplete="username" required>
+      <input id="admin-login-pass" class="input" type="password" placeholder="Senha" autocomplete="current-password" required>
+      <button type="submit" class="btn btn-primary">Entrar</button>
+      <div id="admin-login-error" style="color:var(--danger);font-size:13px"></div>
+    </form>
+  </div>
+
+  <div id="admin-app" class="admin-wrap hidden">
+    <div class="admin-head">
+      <h1>Administração — ZOLMEA API</h1>
+      <div style="display:flex;gap:14px;align-items:center">
+        <span id="admin-username" class="hint"></span>
+        <a href="/login.html">← Voltar ao painel completo</a>
+      </div>
+    </div>
+
+    <div class="stat-grid" id="admin-stats" style="margin-bottom:28px"></div>
+
+    <div class="card">
+      <h2>Usuários da plataforma</h2>
+      <p class="hint">Promova ou rebaixe planos, e acompanhe limites de pacotes e chaves por usuário.</p>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Usuário</th><th>E-mail</th><th>Plano</th><th>Pacotes</th><th>Chaves</th><th>Ação</th></tr></thead>
+          <tbody id="admin-users-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2>Promover usuário rapidamente</h2>
+      <p class="hint">Informe o nome de usuário ou e-mail para promover diretamente para Premium.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="admin-plan-identity" class="input" style="max-width:280px" placeholder="usuário ou e-mail">
+        <button id="admin-plan-btn" class="btn btn-primary">Promover para Premium</button>
+      </div>
+      <p id="admin-plan-message" class="hint" style="margin-top:8px"></p>
+    </div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+async function api(url, body) {
+  const res = await fetch(url, {
+    method: body ? 'POST' : 'GET',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!res.ok) return null;
+  try { return await res.json(); } catch (_) { return null; }
+}
+
+(async () => {
+  async function boot() {
+    const me = await api('/api/me');
+    if (!me || !me.user || me.user.role !== 'owner') {
+      $('gate').classList.remove('hidden');
+      $('admin-app').classList.add('hidden');
+      return false;
+    }
+    $('gate').classList.add('hidden');
+    $('admin-app').classList.remove('hidden');
+    $('admin-username').textContent = me.user.username;
+    return true;
+  }
+
+  $('admin-login-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const err = $('admin-login-error');
+    err.textContent = '';
+    const res = await fetch('/api/auth/login', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('admin-login-user').value.trim(), password: $('admin-login-pass').value })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.ok) {
+      if (data.user?.role !== 'owner') { err.textContent = 'Esta conta não é a proprietária (owner). Acesso negado.'; return; }
+      loadAdmin();
+      return;
+    }
+    err.textContent = data.twofa_required ? 'Esta conta tem 2FA ativado — entre pelo painel completo em /login.html.' : (data.error || 'Usuário ou senha inválidos.');
+  });
+
+  async function loadAdmin() {
+    if (!await boot()) return;
+
+  const stats = await api('/api/admin/statistics');
+  if (stats) {
+    const cfg = [['users','Usuários'],['free_users','Usuários gratuitos'],['premium_users','Usuários premium'],
+                 ['packages','Pacotes'],['licenses','Chaves de licença'],['active_licenses','Chaves ativas'],
+                 ['devices','Dispositivos'],['checks_24h','Verificações · 24h']];
+    $('admin-stats').innerHTML = cfg.map(([k,l]) => `<div class="stat stat--blue"><div class="num">${stats[k] ?? 0}</div><div class="lbl">${l}</div></div>`).join('');
+  }
+
+  async function loadUsers() {
+    const d = await api('/api/admin/users');
+    if (!d) return;
+    $('admin-users-body').innerHTML = d.users.map(u => `<tr>
+      <td>${u.username}</td><td>${u.email || '—'}</td>
+      <td><span class="badge ${u.plan === 'premium' ? 'badge-green' : ''}">${u.plan}</span></td>
+      <td>${u.max_packages}</td><td>${u.max_keys}</td>
+      <td><button class="btn btn-primary btn-sm" data-id="${u.id}" data-plan="${u.plan === 'premium' ? 'free' : 'premium'}">
+        ${u.plan === 'premium' ? 'Rebaixar para Gratuito' : 'Fazer Upgrade para Premium'}
+      </button></td>
+    </tr>`).join('');
+    $('admin-users-body').querySelectorAll('button[data-id]').forEach(b => b.onclick = async () => {
+      await api('/api/admin/users/plan', { user_id: Number(b.dataset.id), plan: b.dataset.plan });
+      loadUsers();
+    });
+  }
+  loadUsers();
+
+    $('admin-plan-btn').onclick = async () => {
+      const identity = $('admin-plan-identity').value.trim();
+      const msg = $('admin-plan-message');
+      if (!identity) { msg.textContent = 'Informe um nome de usuário ou e-mail.'; return; }
+      const body = identity.includes('@') ? { email: identity, plan: 'premium' } : { username: identity, plan: 'premium' };
+      const d = await api('/api/admin/users/plan', body);
+      msg.textContent = d ? 'Usuário promovido para Premium.' : 'Usuário não encontrado ou falha na atualização.';
+      loadUsers();
+    };
+  }
+
+  loadAdmin();
+})();
+</script>
+</body></html>

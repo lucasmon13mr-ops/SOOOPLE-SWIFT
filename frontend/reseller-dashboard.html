@@ -1,0 +1,128 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ZOLMEA API — Painel do Revendedor</title>
+  <link rel="stylesheet" href="reseller.css">
+</head>
+<body class="reseller-dashboard-page">
+
+  <div id="page-loading" class="page-loading">
+    <div class="loading-spinner"></div>
+    <strong>ZOLMEA API</strong>
+    <span>Carregando painel do revendedor…</span>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">M3</div>
+        <div>
+          <strong>ZOLMEA <b>API</b></strong>
+          <small>Portal do Revendedor</small>
+        </div>
+      </div>
+      <nav class="side-nav">
+        <button class="side-item active" data-tab="overview"><span class="nav-icon">▥</span> Visão Geral</button>
+        <button class="side-item" data-tab="packages"><span class="nav-icon">◈</span> Pacotes Atribuídos</button>
+        <button class="side-item" data-tab="licenses"><span class="nav-icon">🔑</span> Minhas Chaves de Licença</button>
+        <button class="side-item" data-tab="account"><span class="nav-icon">◎</span> Conta</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="account-chip">
+          <span id="avatar">R</span>
+          <div>
+            <strong id="side-username">Revendedor</strong>
+            <small>Conta de revendedor</small>
+          </div>
+        </div>
+        <button id="logout" class="btn ghost logout" type="button">Sair</button>
+      </div>
+    </aside>
+
+    <div class="scrim" id="scrim"></div>
+
+    <div class="main-content">
+      <header class="topbar">
+        <button class="menu-button" id="menu" aria-label="Abrir menu">☰</button>
+        <h1 id="page-title">Visão Geral</h1>
+        <div class="top-actions">
+          <span class="status-pill" id="status-pill">● Ativo</span>
+          <button id="refresh" class="btn ghost">Atualizar</button>
+        </div>
+      </header>
+
+      <!-- Visão Geral -->
+      <section id="panel-overview" class="panel">
+        <div class="hero-row">
+          <div>
+            <h2>Bem-vindo, <span id="welcome-name">revendedor</span></h2>
+            <p class="muted">Acompanhe seus pacotes atribuídos e chaves de licença criadas para seus clientes.</p>
+          </div>
+          <button id="overview-create" class="btn primary">+ Criar chave de licença</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><span>Pacotes atribuídos</span><strong id="stat-packages">0</strong></div>
+          <div class="stat-card"><span>Chaves criadas</span><strong id="stat-used">0</strong></div>
+          <div class="stat-card"><span>Cota máxima de chaves</span><strong id="stat-quota">—</strong></div>
+          <div class="stat-card"><span>Status da conta</span><strong id="stat-status">Ativo</strong></div>
+        </div>
+        <div class="content-card">
+          <h3>Como funciona</h3>
+          <p class="muted">Como revendedor, você pode criar, redefinir e excluir chaves de licença apenas para os pacotes que o proprietário atribuiu à sua conta. Tokens de pacote, segredos HMAC e arquivos SDK ficam visíveis somente para o proprietário.</p>
+        </div>
+      </section>
+
+      <!-- Pacotes Atribuídos -->
+      <section id="panel-packages" class="panel hidden">
+        <div class="section-head">
+          <h2>Pacotes Atribuídos</h2>
+          <p class="muted">Pacotes que o proprietário liberou para revenda pela sua conta.</p>
+        </div>
+        <div class="card-grid" id="packages"></div>
+      </section>
+
+      <!-- Minhas Chaves de Licença -->
+      <section id="panel-licenses" class="panel hidden">
+        <div class="section-head">
+          <div>
+            <h2>Minhas Chaves de Licença</h2>
+            <p class="muted">Crie, redefina e exclua as chaves que você gerou.</p>
+          </div>
+          <button id="new-license" class="btn primary">+ Criar chave de licença</button>
+        </div>
+        <div class="content-card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Chave</th><th>Pacote</th><th>Status</th><th>Dispositivos</th><th>Expira</th><th>Ações</th></tr></thead>
+              <tbody id="licenses"><tr><td colspan="6" class="muted">Carregando suas chaves de licença…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Conta -->
+      <section id="panel-account" class="panel hidden">
+        <div class="section-head">
+          <h2>Conta</h2>
+          <p class="muted">Detalhes da sua conta de revendedor.</p>
+        </div>
+        <div class="profile-card" id="profile"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="modal-close" class="modal-close" type="button">×</button>
+      <h2 id="modal-title"></h2>
+      <div id="modal-body"></div>
+      <div id="modal-actions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <div id="toast-stack" class="toast-stack"></div>
+
+  <script src="reseller.js"></script>
+
+</body></html>

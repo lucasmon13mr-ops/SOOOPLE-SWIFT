@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: zolmea-api
+    runtime: node
+    plan: free
+    buildCommand: npm install --prefix backend
+    startCommand: node backend/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_USERNAME
+        sync: false
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: PUBLIC_BACKEND_URL
+        sync: false
