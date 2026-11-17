@@ -9,6 +9,7 @@ const fs = require('fs');
 const db = require('./db');
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '2mb' }));
 app.use((req, res, next) => {
   const origin = req.headers.origin;
