@@ -17,12 +17,12 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://SEU-BACKEND-AQUI.exemplo.com/api/:splat"
+  to = "https://zolmea-api.onrender.com/api/:splat"
   status = 200
   force = true
 
 [[redirects]]
   from = "/audio/*"
-  to = "https://SEU-BACKEND-AQUI.exemplo.com/audio/:splat"
+  to = "https://zolmea-api.onrender.com/audio/:splat"
   status = 200
   force = true

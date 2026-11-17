@@ -3,17 +3,31 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 const db = require('./db');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Package-ID, X-Bundle-ID, X-Project-Name, X-Original-Filename');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 app.use(cookieSession({
   name: 'zolmea_session',
   secret: process.env.SESSION_SECRET || 'troque-este-segredo-em-producao',
   httpOnly: true,
-  sameSite: 'lax',
+  sameSite: 'none',
+  secure: true,
   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
 }));
 
@@ -38,6 +52,29 @@ function requireOwner(req, res, next) {
 function audit(actor, action, targetType, targetId, detail) {
   db.prepare(`INSERT INTO audit_log (actor, action, target_type, target_id, detail) VALUES (?,?,?,?,?)`)
     .run(actor, action, targetType || null, targetId || null, detail || null);
+}
+
+function createMailer() {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM } = process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !EMAIL_FROM) return null;
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT || 587),
+    secure: String(SMTP_PORT || '587') === '465',
+    auth: { user: SMTP_USER, pass: SMTP_PASS }
+  });
+}
+
+async function sendOtpEmail(email, code, purpose) {
+  const mailer = createMailer();
+  if (!mailer) throw new Error('email_not_configured');
+  await mailer.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: 'Seu código de verificação ZOLMEA',
+    text: `Seu código ZOLMEA para ${purpose} é ${code}. Ele expira em 10 minutos.`,
+    html: `<p>Seu código ZOLMEA para <strong>${purpose}</strong> é:</p><p style="font-size:28px;letter-spacing:6px"><strong>${code}</strong></p><p>Ele expira em 10 minutos.</p>`
+  });
 }
 
 // ======================================================
@@ -77,7 +114,7 @@ app.post('/api/auth/logout', (req, res) => {
 
 // CRIAR CONTA (signup) — envia um código de 6 dígitos (impresso no console do servidor
 // nesta versão de testes; em produção troque por um envio real de e-mail).
-app.post('/api/auth/signup/request', (req, res) => {
+app.post('/api/auth/signup/request', async (req, res) => {
   const { username, email, password } = req.body || {};
   if (!username || !password || password.length < 8) return res.status(400).json({ error: 'invalid_signup_data' });
   const exists = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
@@ -88,7 +125,20 @@ app.post('/api/auth/signup/request', (req, res) => {
   pendingChallenges.set(challengeId, { userId: null, code, purpose: 'signup', expires: Date.now() + 10 * 60 * 1000 });
   pendingSignups.set(challengeId, { username, email: email || null, password_hash: bcrypt.hashSync(password, 10) });
   req.session.signupChallengeId = challengeId;
-  console.log(`[cadastro/OTP] código de verificação para "${username}": ${code}`);
+  try {
+    await sendOtpEmail(email, code, 'criação de conta');
+  } catch (error) {
+    pendingChallenges.delete(challengeId);
+    pendingSignups.delete(challengeId);
+    delete req.session.signupChallengeId;
+    const codeName = error.message === 'email_not_configured' ? 'email_not_configured' : 'email_delivery_failed';
+    return res.status(503).json({
+      error: codeName,
+      message: codeName === 'email_not_configured'
+        ? 'O envio de e-mail ainda não foi configurado no servidor.'
+        : 'Não foi possível enviar o código por e-mail.'
+    });
+  }
   res.json({ ok: true });
 });
 

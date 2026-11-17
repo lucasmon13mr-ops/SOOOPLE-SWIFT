@@ -20,6 +20,16 @@ let tableState = {
 };
 const PAGE_SIZE = 15;
 
+// O painel pode ser aberto pelo domínio do Render ou por um host estático.
+// Em ambos os casos, a API deve ser a mesma para evitar credencial inválida
+// e sessão expirada por chamadas relativas ao domínio errado.
+const API_ORIGIN = window.ZOLMEA_API_ORIGIN || 'https://zolmea-api.onrender.com';
+function apiURL(path) {
+  return path && path.startsWith('/')
+    ? API_ORIGIN.replace(/\/$/, '') + path
+    : path;
+}
+
 /* ---------- Auxiliares ---------- */
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function fmtDate(v, short) {
@@ -85,7 +95,8 @@ async function api(url, body) {
   const opts = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', method: body ? 'POST' : 'GET', signal: controller.signal };
   if (body) opts.body = JSON.stringify(body);
   try {
-    const res = await fetch(url, opts);
+    opts.credentials = 'include';
+    const res = await fetch(apiURL(url), opts);
     if (res.status === 401) { showLogin(); toast('Sessão expirada', 'error'); return null; }
     let data;
     try { data = await res.json(); } catch (e) { toast('Resposta inválida do servidor', 'error'); return null; }
@@ -103,12 +114,12 @@ async function apiDetailed(url, body) {
   try {
     const options = {
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
+      credentials: 'include',
       method: body ? 'POST' : 'GET',
       signal: controller.signal
     };
     if (body) options.body = JSON.stringify(body);
-    const response = await fetch(url, options);
+    const response = await fetch(apiURL(url), options);
     let data = {};
     try { data = await response.json(); }
     catch (_) { data = { error: 'invalid_server_response' }; }
@@ -190,8 +201,9 @@ $('form-login').addEventListener('submit', async e => {
   btn.disabled = true; btn.textContent = 'Entrando…';
   const username = $('in-user').value.trim();
   const password = $('in-pass').value;
-  const res = await fetch('/api/auth/login', {
+  const res = await fetch(apiURL('/api/auth/login'), {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ username, password })
   });
   const data = await res.json();
@@ -219,7 +231,7 @@ $('btn-delete-account')?.addEventListener('click',async()=>{
   if(confirmed&&confirmed.ok){alert('Sua conta foi excluída.');location.href='/login.html?mode=login';}
 });
 $('btn-logout').addEventListener('click', async () => {
-  await fetch('/api/auth/logout', { method: 'POST' });
+  await fetch(apiURL('/api/auth/logout'), { method: 'POST', credentials: 'include' });
   showLogin();
 });
 
