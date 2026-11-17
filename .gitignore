@@ -1,0 +1,18 @@
+# Xcode
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+ThreeV.xcodeproj/
+ExportOptions.plist
+
+# macOS
+.DS_Store
+
+# Artefatos
+Payload/
+*.ipa
+*.sha256
+*.xcarchive
