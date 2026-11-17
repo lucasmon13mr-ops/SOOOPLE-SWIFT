@@ -324,10 +324,16 @@ struct UploadProjectView: View {
                 }
             }
             .task { await loadPackages() }
-            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.zip], allowsMultipleSelection: false) { result in
+            // Alguns provedores do app Arquivos não informam o UTI ZIP corretamente.
+            // Aceitamos dados/arquivos e validamos a extensão antes do envio.
+            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.data], allowsMultipleSelection: false) { result in
                 switch result {
                 case .success(let urls):
                     if let url = urls.first {
+                        guard url.pathExtension.lowercased() == "zip" else {
+                            errorMessage = "Selecione um projeto em formato .zip."
+                            return
+                        }
                         zipURL = url
                         zipName = url.lastPathComponent
                         if projectName.isEmpty {
@@ -360,7 +366,10 @@ struct UploadProjectView: View {
             do {
                 let needsScope = url.startAccessingSecurityScopedResource()
                 defer { if needsScope { url.stopAccessingSecurityScopedResource() } }
-                let data = try Data(contentsOf: url)
+                let data = try Data(contentsOf: url, options: [.mappedIfSafe])
+                guard data.count >= 4, data.prefix(2) == Data([0x50, 0x4B]) else {
+                    throw APIError.http(status: 400, code: "invalid_zip_file", message: "O arquivo selecionado não parece ser um ZIP válido.")
+                }
 
                 let headers = [
                     "X-Package-Id": "\(packageId)",
